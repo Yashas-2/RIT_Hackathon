@@ -1,0 +1,5 @@
+user: superuser=True, hospital=False, patient=False
+patient1: superuser=False, hospital=False, patient=False
+yash: superuser=False, hospital=False, patient=False
+Sakshi: superuser=False, hospital=True, patient=False
+Shobhitha: superuser=False, hospital=False, patient=True
