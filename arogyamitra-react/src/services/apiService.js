@@ -141,6 +141,21 @@ class ApiService {
     return this.request('/api/doctor/stats/', { method: 'GET' });
   }
 
+  async updateDoctorProfile(formData) {
+    let authToken = this.token || localStorage.getItem('authToken');
+    if (authToken && !authToken.startsWith('Bearer ')) {
+      authToken = `Bearer ${authToken}`;
+    }
+    return this.request('/api/doctor/update-profile/', {
+      method: 'PUT',
+      body: formData,
+      headers: {
+        ...(authToken && { 'Authorization': authToken }),
+        // Let browser set Content-Type with boundary for multipart
+      },
+    });
+  }
+
   async logout() {
     try {
       await this.request('/api/auth/logout/', {
