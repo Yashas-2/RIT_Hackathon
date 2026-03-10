@@ -1,1 +1,23 @@
+# Python / Django
+*.pyc
+__pycache__/
+*.pyo
+*.pyd
+db.sqlite3
+*.log
+
+# Environment secrets — NEVER commit these
 .env
+.env.*
+*.env
+
+# Node / React
+node_modules/
+dist/
+.npm-cache/
+
+# IDE / OS
+.vscode/
+.idea/
+*.DS_Store
+Thumbs.db
