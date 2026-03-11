@@ -1,7 +1,7 @@
 // Service to connect to Django REST Framework APIs
 
 class ApiService {
-  constructor(baseUrl = 'http://localhost:8000') {
+  constructor(baseUrl = 'http://127.0.0.1:8000') {
     this.baseUrl = baseUrl;
     // Don't initialize token here, let it be set when needed
     this.token = null;
@@ -49,7 +49,7 @@ class ApiService {
       const data = await response.json();
 
       // Handle token expiration
-      if (response.status === 401 && data.detail && data.detail.includes('token')) {
+      if (response.status === 401 && data.detail && data.detail.includes('token') && endpoint !== '/api/auth/refresh-token/') {
         // Try to refresh token
         try {
           const refreshResponse = await this.refreshTokenFunc();
@@ -116,16 +116,23 @@ class ApiService {
   }
 
   async register(userData) {
+    let userType;
+    if (userData instanceof FormData) {
+      userType = userData.get('user_type');
+    } else {
+      userType = userData.user_type;
+    }
+
     let endpoint = '/api/auth/register-patient/';
-    if (userData.user_type === 'hospital') {
+    if (userType === 'hospital') {
       endpoint = '/api/auth/register-hospital/';
-    } else if (userData.user_type === 'doctor') {
+    } else if (userType === 'doctor') {
       endpoint = '/api/auth/register-doctor/';
     }
 
     return this.request(endpoint, {
       method: 'POST',
-      body: JSON.stringify(userData),
+      body: userData instanceof FormData ? userData : JSON.stringify(userData),
     });
   }
 
@@ -151,9 +158,12 @@ class ApiService {
       body: formData,
       headers: {
         ...(authToken && { 'Authorization': authToken }),
-        // Let browser set Content-Type with boundary for multipart
       },
     });
+  }
+
+  async toggleDoctorOnlineStatus() {
+    return this.request('/api/doctor/toggle-online/', { method: 'POST' });
   }
 
   async logout() {
@@ -303,17 +313,28 @@ class ApiService {
     return this.request(`/api/doctors/${doctorId}/`, { method: 'GET' });
   }
 
-  async initiateConsultation(doctorId, type = 'chat') {
+  async initiateConsultation(doctorId) {
     return this.request('/api/consultations/initiate/', {
       method: 'POST',
-      body: JSON.stringify({ doctor_id: doctorId, consultation_type: type }),
+      body: JSON.stringify({ doctor_id: doctorId }),
     });
   }
 
-  async processVideoCallPayment(consultationId, paymentData) {
+  async acceptConsultation(consultationId) {
+    return this.request('/api/consultations/accept/', {
+      method: 'POST',
+      body: JSON.stringify({ consultation_id: consultationId }),
+    });
+  }
+
+  async getConsultationStatus(consultationId) {
+    return this.request(`/api/consultations/${consultationId}/status/`, { method: 'GET' });
+  }
+
+  async processVideoCallPayment(consultationId, paymentId) {
     return this.request('/api/consultations/payment/', {
       method: 'POST',
-      body: JSON.stringify({ consultation_id: consultationId, amount: 150, ...paymentData }),
+      body: JSON.stringify({ consultation_id: consultationId, payment_id: paymentId }),
     });
   }
 
@@ -358,6 +379,17 @@ class ApiService {
       const match = targetSpec ? doctors.find(d => d.specialization?.toLowerCase().includes(targetSpec.toLowerCase())) : null;
       return { success: true, recommended_doctor_id: (match || doctors[0]).id };
     }
+  }
+
+  async getGeminiChatResponse(message, history = [], doctorContext = null) {
+    return this.request('/api/gemini/chat/', {
+      method: 'POST',
+      body: JSON.stringify({
+        message,
+        history,
+        doctor_context: doctorContext
+      }),
+    });
   }
 }
 

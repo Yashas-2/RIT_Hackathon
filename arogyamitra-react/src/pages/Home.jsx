@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../components/AuthProvider';
 import useTranslation from '../hooks/useTranslation';
 
@@ -64,12 +64,12 @@ const Home = () => {
           </p>
           
           <div className="hero-buttons">
-            <a href="/login/" className="btn btn-glow">
+            <Link to="/login" className="btn btn-glow">
               <i className="fas fa-sign-in-alt"></i> {t('loginSignup')}
-            </a>
-            <a href="/scheme-checker/" className="btn btn-outline">
+            </Link>
+            <Link to="/scheme-checker" className="btn btn-outline">
               <i className="fas fa-check-circle"></i> {t('tryWithoutLogin')}
-            </a>
+            </Link>
           </div>
         </div>
         
@@ -77,7 +77,7 @@ const Home = () => {
         <div className="particles-bg" id="particles"></div>
       </section>
 
-      {/* Features Section */}
+      {/* Combined Services & How It Works Section */}
       <section className="features-section">
         <div className="section-title">
           <h2>{t('threeFeaturesTitle')}</h2>
@@ -94,9 +94,13 @@ const Home = () => {
             <p className="feature-description">
               {t('schemeCheckerDesc')}
             </p>
-            <a href="/scheme-checker/" className="btn btn-primary mt-3" style={{ width: '100%' }}>
+            <div className="mt-3" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--accent-emerald)' }}>
+              <span style={{ width: '24px', height: '24px', background: 'var(--gradient-emerald)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>1</span>
+              {t('enterDetails')}
+            </div>
+            <Link to="/scheme-checker" className="btn btn-primary mt-3" style={{ width: '100%' }}>
               <span>{t('checkNow')}</span>
-            </a>
+            </Link>
           </div>
           
           {/* Feature 2: Medical Vault */}
@@ -108,9 +112,10 @@ const Home = () => {
             <p className="feature-description">
               {t('medicalVaultDesc')}
             </p>
-            <a href="/report-vault/" className="btn btn-primary mt-3" style={{ width: '100%', background: 'var(--gradient-teal)' }}>
-              <span>{t('uploadReports')}</span>
-            </a>
+            <div className="mt-3" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--accent-teal)' }}>
+              <span style={{ width: '24px', height: '24px', background: 'var(--gradient-teal)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>2</span>
+              {t('aiAnalysisStep')}
+            </div>
           </div>
           
           {/* Feature 3: AI Analysis */}
@@ -122,42 +127,10 @@ const Home = () => {
             <p className="feature-description">
               {t('aiInterpreterDesc')}
             </p>
-            <a href="/report-analysis/" className="btn btn-primary mt-3" style={{ width: '100%', background: 'var(--gradient-purple)' }}>
-              <span>{t('analyzeReport')}</span>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works Section */}
-      <section className="features-section" style={{ background: 'rgba(255,255,255,0.02)', padding: '6rem 2rem' }}>
-        <div className="section-title">
-          <h2>{t('howItWorksTitle')}</h2>
-        </div>
-        
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '2rem', maxWidth: '1200px', margin: '0 auto' }}>
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 1rem', background: 'var(--gradient-emerald)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: '900' }}>1</div>
-            <h3 style={{ marginBottom: '0.5rem' }}>{t('enterDetails')}</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>{t('enterDetailsDesc')}</p>
-          </div>
-          
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 1rem', background: 'var(--gradient-teal)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: '900' }}>2</div>
-            <h3 style={{ marginBottom: '0.5rem' }}>{t('aiAnalysisStep')}</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>{t('aiAnalysisDesc')}</p>
-          </div>
-          
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 1rem', background: 'var(--gradient-purple)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: '900' }}>3</div>
-            <h3 style={{ marginBottom: '0.5rem' }}>{t('getResults')}</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>{t('getResultsDesc')}</p>
-          </div>
-          
-          <div style={{ textAlign: 'center' }}>
-            <div style={{ width: '80px', height: '80px', margin: '0 auto 1rem', background: 'var(--gradient-neon)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', fontWeight: '900' }}>4</div>
-            <h3 style={{ marginBottom: '0.5rem' }}>{t('applyBenefit')}</h3>
-            <p style={{ color: 'var(--text-secondary)' }}>{t('applyBenefitDesc')}</p>
+            <div className="mt-3" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.9rem', color: 'var(--accent-purple)' }}>
+              <span style={{ width: '24px', height: '24px', background: 'var(--gradient-purple)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold' }}>3</span>
+              {t('getResults')}
+            </div>
           </div>
         </div>
       </section>
@@ -177,9 +150,9 @@ const Home = () => {
           <p style={{ color: 'var(--success-green)', marginBottom: '2rem' }}>
             <i className="fas fa-fire"></i> {t('revenueText')}
           </p>
-          <a href="/premium/" className="btn btn-glow" style={{ padding: '1.25rem 3rem', fontSize: '1.125rem' }}>
+          <Link to="/premium" className="btn btn-glow" style={{ padding: '1.25rem 3rem', fontSize: '1.125rem' }}>
             <i className="fas fa-crown"></i> <span>{t('upgradeToPremium')}</span>
-          </a>
+          </Link>
         </div>
       </section>
 

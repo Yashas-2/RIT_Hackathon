@@ -24,7 +24,19 @@ urlpatterns = [
     
     # Doctor APIs
     path('api/doctors/', views_secure.get_doctors, name='get_doctors'),
+    path('api/doctors/<int:pk>/', views_secure.get_doctor_by_id, name='get_doctor_by_id'),
     path('api/doctor/stats/', views_secure.doctor_stats, name='doctor_stats'),
+    path('api/doctor/update-profile/', views_secure.update_doctor_profile, name='update_doctor_profile'),
+    path('api/doctor/toggle-online/', views_secure.toggle_doctor_online, name='toggle_doctor_online'),
+    
+    # Consultation & Gemini APIs
+    path('api/consultations/initiate/', views_secure.initiate_consultation, name='initiate_consultation'),
+    path('api/consultations/accept/', views_secure.accept_consultation, name='accept_consultation'),
+    path('api/consultations/<int:pk>/status/', views_secure.get_consultation_status, name='get_consultation_status'),
+    path('api/consultations/payment/', views_secure.process_consultation_payment, name='process_payment'),
+    path('api/consultations/list/', views_secure.list_consultations, name='list_consultations'),
+    path('api/gemini/recommend-doctor/', views_secure.gemini_recommend_doctor, name='gemini_recommend'),
+    path('api/gemini/chat/', views_secure.gemini_chat, name='gemini_chat'),
     
     # Hospital Staff APIs (RBAC Protected)
     path('api/hospital/upload-report/', views_secure.hospital_upload_report, name='hospital_upload'),

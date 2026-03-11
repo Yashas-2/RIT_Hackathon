@@ -7,7 +7,7 @@ const translations = {
     checkEligibility: 'Check Eligibility',
     myReports: 'My Reports',
     aiAnalysis: 'AI Analysis',
-    upgrade: 'Upgrade ₹49',
+    upgrade: 'Upgrade ₹49/mo',
     
     // Common Buttons
     login: 'Login',
@@ -44,7 +44,8 @@ const translations = {
     loginTitle: 'ArogyaMitra AI',
     selectLoginType: 'Select your login type',
     patient: 'Patient',
-    hospitalStaff: 'Hospital Staff',
+    hospitalStaff: 'Staff',
+    doctor: 'Doctor',
     secureLogin: 'Secure Login',
     dontHaveAccount: 'Don\'t have an account?',
     registerNow: 'Register Now',
@@ -193,7 +194,7 @@ const translations = {
     checkEligibility: 'ಅರ್ಹತೆ ಪರಿಶೀಲಿಸಿ',
     myReports: 'ನನ್ನ ವರದಿಗಳು',
     aiAnalysis: 'AI ವಿಶ್ಲೇಷಣೆ',
-    upgrade: 'ಅಪ್‌ಗ್ರೇಡ್ ₹49',
+    upgrade: 'ಅಪ್‌ಗ್ರೇಡ್ ₹49/ತಿಂಗಳು',
     
     // Common Buttons
     login: 'ಲಾಗಿನ್',
@@ -230,7 +231,8 @@ const translations = {
     loginTitle: 'ಆರೋಗ್ಯಮಿತ್ರ AI',
     selectLoginType: 'ನಿಮ್ಮ ಲಾಗಿನ್ ಪ್ರಕಾರವನ್ನು ಆಯ್ಕೆಮಾಡಿ',
     patient: 'ರೋಗಿ',
-    hospitalStaff: 'ಆಸ್ಪತ್ರೆ ಸಿಬ್ಬಂದಿ',
+    hospitalStaff: 'ಸಿಬ್ಬಂದಿ',
+    doctor: 'ವೈದ್ಯರು',
     secureLogin: 'ಸುರಕ್ಷಿತ ಲಾಗಿನ್',
     dontHaveAccount: 'ಖಾತೆ ಇಲ್ಲವೇ?',
     registerNow: 'ಈಗ ನೋಂದಾಯಿಸಿ',

@@ -244,7 +244,7 @@ def analyze_medical_report(request):
         
         # Process with Gemini AI 
         try:
-            analysis_result = gemini_service.analyze_medical_report(report_text, language)
+            analysis_result = gemini_service.analyze_medical_report(processed_text, language)
         except Exception as e:
             return Response({
                 'success': False,

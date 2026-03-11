@@ -35,13 +35,6 @@ const SchemeChecker = () => {
     'Cardio', 'Ortho', 'General', 'Cancer', 'Neuro', 'Kidney', 'Others'
   ];
 
-  useEffect(() => {
-    // Check if user is authenticated
-    if (!isAuthenticated) {
-      navigate('/login');
-      return;
-    }
-  }, [navigate, isAuthenticated]);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -106,12 +99,14 @@ const SchemeChecker = () => {
   return (
     <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
       <div className="d-flex justify-content-between align-items-center mb-4">
-        <h1 className="text-center" style={{ background: 'var(--gradient-neon)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
+        <h1 className="text-center" style={{ background: 'var(--gradient-neon)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', margin: result ? '0' : '0 auto' }}>
           Check Your <span className="gradient-text">Eligibility</span>
         </h1>
-        <button className="btn btn-outline" onClick={handleLogout}>
-          <i className="fas fa-sign-out-alt"></i> Logout
-        </button>
+        {isAuthenticated && (
+          <button className="btn btn-outline" onClick={handleLogout}>
+            <i className="fas fa-sign-out-alt"></i> Logout
+          </button>
+        )}
       </div>
       <p className="text-center mb-4" style={{ color: 'var(--gray-300)', fontSize: '1.25rem' }}>
         AI will find the best Karnataka & Central Government health schemes for you

@@ -1,24 +1,12 @@
 import { useState, useEffect } from 'react';
+import { useLanguage } from '../components/LanguageProvider';
 import translations from '../utils/translations';
 
 // Custom hook for handling translations
 const useTranslation = () => {
-  const [language, setLanguage] = useState('kn'); // Default to Kannada for rural users
+  const { language, changeLanguage } = useLanguage();
 
-  // Load language preference from localStorage on initial render
-  useEffect(() => {
-    const savedLanguage = localStorage.getItem('language') || 'kn'; // Default to Kannada
-    setLanguage(savedLanguage);
-  }, []);
-
-  // Function to change language
-  const changeLanguage = (newLanguage) => {
-    setLanguage(newLanguage);
-    localStorage.setItem('language', newLanguage);
-    
-    // Dispatch custom event for components to listen to language changes
-    window.dispatchEvent(new CustomEvent('languageChanged', { detail: newLanguage }));
-  };
+  // Function to get translated text
 
   // Function to get translated text
   const t = (key) => {

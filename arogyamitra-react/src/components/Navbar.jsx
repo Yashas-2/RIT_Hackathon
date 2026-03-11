@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../components/AuthProvider';
+import { useAuth } from './AuthProvider';
 import useTranslation from '../hooks/useTranslation';
 
 const Navbar = () => {
@@ -8,7 +8,7 @@ const Navbar = () => {
   const [isHidden, setIsHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
   const location = useLocation();
-  const { language, changeLanguage } = useTranslation();
+  const { language, changeLanguage, t } = useTranslation();
   const { user, logout, isAuthenticated } = useAuth();
 
   useEffect(() => {
@@ -76,15 +76,22 @@ const Navbar = () => {
                   <li><Link to="/report-analysis" className={`nav-link ${location.pathname === '/report-analysis' ? 'active' : ''}`}>AI Analysis</Link></li>
                 </>
               )}
-              <li><Link to="/premium" className="btn btn-glow">Upgrade ₹49</Link></li>
+              <li><Link to="/premium" className="btn btn-glow nav-btn">{t('upgrade')}</Link></li>
               <li>
-                <button onClick={handleLogout} className="btn btn-outline" style={{ marginLeft: '1rem' }}>
+                <button onClick={handleLogout} className="btn btn-outline nav-btn" style={{ marginLeft: '1rem' }}>
                   <i className="fas fa-sign-out-alt"></i> Logout
                 </button>
               </li>
             </>
           ) : (
-            <li><Link to="/login" className="btn btn-glow">Login</Link></li>
+            <>
+              {location.pathname !== '/login' && location.pathname !== '/register' && (
+                <>
+                  <li><Link to="/premium" className="btn btn-glow nav-btn" style={{ marginRight: '1rem' }}>{t('upgrade')}</Link></li>
+                  <li><Link to="/login" className="btn btn-primary nav-btn">{t('login')}</Link></li>
+                </>
+              )}
+            </>
           )}
         </ul>
         

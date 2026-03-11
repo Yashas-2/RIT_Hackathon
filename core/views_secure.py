@@ -21,6 +21,7 @@ from .serializers import (
     OTPVerificationSerializer, OTPRequestSerializer,
     MedicalReportSerializer, ReportAccessLogSerializer
 )
+from .gemini_service import gemini_service
 
 
 def get_client_ip(request):
@@ -82,7 +83,8 @@ def register_patient(request):
             has_aadhaar=request.data.get('has_aadhaar', False),
             aadhaar_last4=request.data.get('aadhaar_last4', ''),
             disease_type=request.data['disease_type'],
-            phone_number=request.data['phone_number']
+            phone_number=request.data['phone_number'],
+            profile_photo=request.FILES.get('profile_photo')
         )
         
         # Create subscription
@@ -143,6 +145,7 @@ def register_hospital_staff(request):
             hospital_name=request.data['hospital_name'],
             department=request.data.get('department', ''),
             license_number=request.data['license_number'],
+            profile_photo=request.FILES.get('profile_photo'),
             is_verified=False  # Admin verification required
         )
         
@@ -701,7 +704,8 @@ def register_doctor(request):
             hospital_affiliation=request.data.get('hospital_affiliation', ''),
             district=request.data.get('district', 'Bengaluru Urban'),
             bio=request.data.get('bio', ''),
-            experience_years=int(request.data.get('experience_years', 0))
+            experience_years=int(request.data.get('experience_years', 0)),
+            profile_photo=request.FILES.get('profile_photo')
         )
         
         return Response({
@@ -802,13 +806,14 @@ def get_doctors(request):
             'district': doc.district,
             'experience_years': doc.experience_years,
             'bio': doc.bio,
-            'phone': doc.phone
+            'phone': doc.phone,
+            'is_online': doc.is_online
         })
         
     return Response({
         'success': True,
         'count': len(doctors_data),
-        'doctors': doctors_data
+        'data': doctors_data
     })
 
 
@@ -860,3 +865,282 @@ def doctor_stats(request):
             'avg_rating': round(float(avg_rating), 1),
         }
     })
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def update_doctor_profile(request):
+    """
+    Update doctor profile information. 
+    Handles specialization, district, hospital_affiliation, and profile_photo.
+    """
+    print(f"DEBUG: update_doctor_profile called by {request.user}")
+    print(f"DEBUG: Data: {request.data}")
+    print(f"DEBUG: Files: {request.FILES}")
+    
+    if not hasattr(request.user, 'doctor_profile'):
+        print(f"DEBUG: User {request.user} has no doctor_profile")
+        return Response({'success': False, 'error': 'Unauthorized. Only doctors can update their profile.'}, status=status.HTTP_403_FORBIDDEN)
+    
+    doctor = request.user.doctor_profile
+    data = request.data
+    
+    try:
+        # Update text fields
+        if 'specialization' in data:
+            doctor.specialization = data['specialization']
+        if 'district' in data:
+            doctor.district = data['district']
+        if 'hospital_affiliation' in data:
+            doctor.hospital_affiliation = data['hospital_affiliation']
+        if 'full_name' in data:
+            doctor.full_name = data['full_name']
+            
+        # Handle file upload
+        if 'profile_photo' in request.FILES:
+            doctor.profile_photo = request.FILES['profile_photo']
+            
+        doctor.save()
+        
+        return Response({
+            'success': True,
+            'message': 'Profile updated successfully',
+            'user': {
+                'id': request.user.id,
+                'username': request.user.username,
+                'full_name': doctor.full_name,
+                'role': 'DOCTOR',
+                'specialization': doctor.specialization,
+                'hospital': doctor.hospital_affiliation,
+                'profile_photo': doctor.profile_photo.url if doctor.profile_photo else None
+            }
+        })
+        
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': f'Failed to update profile: {str(e)}'
+        }, status=status.HTTP_400_BAD_REQUEST)
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_doctor_by_id(request, pk):
+    """Get specific doctor details"""
+    from .models import DoctorProfile
+    doctor = get_object_or_404(DoctorProfile, id=pk)
+    return Response({
+        'success': True,
+        'data': {
+            'id': doctor.id,
+            'full_name': doctor.full_name,
+            'specialization': doctor.specialization,
+            'experience_years': doctor.experience_years,
+            'hospital_affiliation': doctor.hospital_affiliation,
+            'district': doctor.district,
+            'bio': doctor.bio,
+            'profile_photo': doctor.profile_photo.url if doctor.profile_photo else None
+        }
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def initiate_consultation(request):
+    """
+    Creates a Consultation record when a patient requests a call.
+    """
+    from .models import DoctorProfile, Consultation, PatientProfile
+    
+    doctor_id = request.data.get('doctor_id')
+    if not doctor_id:
+        return Response({'success': False, 'error': 'Doctor ID required'}, status=status.HTTP_400_BAD_REQUEST)
+        
+    doctor = get_object_or_404(DoctorProfile, id=doctor_id)
+    patient = getattr(request.user, 'patient_profile', None)
+    if not patient:
+        return Response({'success': False, 'error': 'Only patients can initiate consultations'}, status=status.HTTP_403_FORBIDDEN)
+        
+    consultation = Consultation.objects.create(
+        patient=patient,
+        doctor=doctor,
+        status='REQUESTED'
+    )
+    
+    return Response({
+        'success': True,
+        'consultation_id': consultation.id,
+        'message': 'Consultation requested. Waiting for doctor to accept.'
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def accept_consultation(request):
+    """
+    Doctor accepts a consultation request.
+    """
+    from .models import Consultation
+    
+    consultation_id = request.data.get('consultation_id')
+    consultation = get_object_or_404(Consultation, id=consultation_id)
+    
+    if not hasattr(request.user, 'doctor_profile') or consultation.doctor.user != request.user:
+        return Response({'success': False, 'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+    consultation.status = 'ACCEPTED'
+    consultation.save()
+    
+    return Response({
+        'success': True,
+        'message': 'Consultation accepted. Waiting for patient payment.'
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def process_consultation_payment(request):
+    """
+    Update consultation status after payment.
+    """
+    from .models import Consultation
+    
+    consultation_id = request.data.get('consultation_id')
+    payment_id = request.data.get('payment_id', 'mock_pay_' + str(timezone.now().timestamp()))
+    
+    consultation = get_object_or_404(Consultation, id=consultation_id)
+    consultation.status = 'PAID'
+    consultation.payment_id = payment_id
+    consultation.save()
+    
+    return Response({
+        'success': True,
+        'transaction_id': payment_id,
+        'message': 'Payment processed successfully. You can now join the call.'
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def get_consultation_status(request, pk):
+    """
+    Get the current status of a consultation.
+    """
+    from .models import Consultation
+    consultation = get_object_or_404(Consultation, id=pk)
+    
+    # Check if user is part of the consultation
+    if consultation.patient.user != request.user and consultation.doctor.user != request.user:
+        return Response({'success': False, 'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+    return Response({
+        'success': True,
+        'status': consultation.status,
+        'consultation_id': consultation.id,
+        'doctor_name': consultation.doctor.full_name,
+        'patient_name': consultation.patient.user.username
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def toggle_doctor_online(request):
+    """
+    Toggle doctor's online status.
+    """
+    from .models import DoctorProfile
+    if not hasattr(request.user, 'doctor_profile'):
+        return Response({'success': False, 'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+    doctor = request.user.doctor_profile
+    doctor.is_online = not doctor.is_online
+    doctor.save()
+    
+    return Response({
+        'success': True,
+        'is_online': doctor.is_online,
+        'message': f"Doctor is now {'online' if doctor.is_online else 'offline'}"
+    })
+
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def list_consultations(request):
+    """
+    List consultations for the current user (doctor or patient).
+    """
+    from .models import Consultation
+    
+    if hasattr(request.user, 'doctor_profile'):
+        consultations = Consultation.objects.filter(doctor=request.user.doctor_profile)
+    elif hasattr(request.user, 'patient_profile'):
+        consultations = Consultation.objects.filter(patient=request.user.patient_profile)
+    else:
+        return Response({'success': False, 'error': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+    data = [{
+        'id': c.id,
+        'patient_name': c.patient.user.username,
+        'doctor_name': c.doctor.full_name,
+        'status': c.status,
+        'fee': float(c.fee),
+        'created_at': c.created_at
+    } for c in consultations]
+    
+    return Response({
+        'success': True,
+        'data': data
+    })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def gemini_recommend_doctor(request):
+    """
+    Backend implementation of doctor recommendation using Gemini AI.
+    Analyzes report analysis findings vs available doctors.
+    """
+    report_analysis = request.data.get('report_analysis', {})
+    doctors = request.data.get('available_doctors', [])
+    
+    if not doctors:
+        return Response({'success': False, 'error': 'No doctors available'})
+        
+    try:
+        recommended_id = gemini_service.recommend_best_doctor(report_analysis, doctors)
+        return Response({
+            'success': True,
+            'recommended_doctor_id': recommended_id
+        })
+    except Exception as e:
+        return Response({
+            'success': True,
+            'recommended_doctor_id': doctors[0]['id'], # Fallback
+            'error': str(e)
+        })
+
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def gemini_chat(request):
+    """
+    Generate an AI response for the 'Free Chat' feature.
+    """
+    user_message = request.data.get('message')
+    chat_history = request.data.get('history', [])
+    doctor_context = request.data.get('doctor_context')
+
+    if not user_message:
+        return Response({'success': False, 'error': 'Message is required'}, status=status.HTTP_400_BAD_REQUEST)
+
+    try:
+        response_text = gemini_service.get_chat_response(user_message, chat_history, doctor_context)
+        return Response({
+            'success': True,
+            'reply': response_text
+        })
+    except Exception as e:
+        return Response({
+            'success': False,
+            'error': str(e)
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

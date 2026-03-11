@@ -13,7 +13,9 @@ import Register from './pages/Register';
 import HospitalDashboard from './pages/HospitalDashboard';
 import DoctorDashboard from './pages/DoctorDashboard';
 import FindDoctors from './pages/FindDoctors';
+import ConsultationRoom from './pages/ConsultationRoom';
 import ProtectedRoute from './pages/ProtectedRoute';
+import PaymentPage from './pages/PaymentPage';
 
 // Import components
 import Navbar from './components/Navbar';
@@ -28,12 +30,14 @@ function App() {
           <Route path="/scheme-checker" element={<SchemeChecker />} />
           <Route path="/report-vault" element={<ProtectedRoute><ReportVault /></ProtectedRoute>} />
           <Route path="/report-analysis" element={<ProtectedRoute><ReportAnalysis /></ProtectedRoute>} />
-          <Route path="/premium" element={<ProtectedRoute><Premium /></ProtectedRoute>} />
+          <Route path="/premium" element={<Premium />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/hospital-dashboard" element={<ProtectedRoute requiredRole="HOSPITAL_STAFF"><HospitalDashboard /></ProtectedRoute>} />
           <Route path="/doctor-dashboard" element={<ProtectedRoute requiredRole="DOCTOR"><DoctorDashboard /></ProtectedRoute>} />
           <Route path="/find-doctors" element={<ProtectedRoute><FindDoctors /></ProtectedRoute>} />
+          <Route path="/consultation/:id" element={<ProtectedRoute><ConsultationRoom /></ProtectedRoute>} />
+          <Route path="/payment" element={<PaymentPage />} />
         </Routes>
       </div>
     </Router>

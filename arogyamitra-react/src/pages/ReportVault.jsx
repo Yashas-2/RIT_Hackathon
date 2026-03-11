@@ -158,7 +158,10 @@ const ReportVault = () => {
     // Navigate to Find Doctors page with report analysis context for Gemini AI
     navigate('/find-doctors', {
       state: {
-        reportContext: analysisResult,
+        reportContext: {
+          ...analysisResult,
+          report_name: reports.find(r => r.id === analysisResult.report_id)?.name || 'Health Report'
+        },
       }
     });
   };

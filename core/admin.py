@@ -1,12 +1,21 @@
 from django.contrib import admin
+from django.utils.safestring import mark_safe
 from .models import PatientProfile, SchemeResult, MedicalReport, AIAnalysis, Subscription, HospitalStaff, ReportAccessLog, DoctorProfile
 
 @admin.register(PatientProfile)
 class PatientProfileAdmin(admin.ModelAdmin):
-    list_display = ['user', 'age', 'district', 'economic_status', 'disease_type', 'created_at']
+    list_display = ['photo_preview', 'user', 'age', 'district', 'economic_status', 'disease_type', 'created_at']
     list_filter = ['district', 'economic_status', 'disease_type']
     search_fields = ['user__username', 'user__email', 'district']
     date_hierarchy = 'created_at'
+    readonly_fields = ['photo_preview']
+    fields = ['photo_preview', 'user', 'profile_photo', 'age', 'district', 'economic_status', 'has_ration_card', 'has_aadhaar', 'aadhaar_last4', 'disease_type', 'phone_number']
+
+    def photo_preview(self, obj):
+        if obj.profile_photo:
+            return mark_safe(f'<img src="{obj.profile_photo.url}" width="150" height="150" style="border-radius: 12px; object-fit: cover; border: 2px solid #ccc;" />')
+        return "No Photo"
+    photo_preview.short_description = "Profile Photo Preview"
 
 @admin.register(SchemeResult)
 class SchemeResultAdmin(admin.ModelAdmin):
@@ -38,10 +47,18 @@ class SubscriptionAdmin(admin.ModelAdmin):
 
 @admin.register(HospitalStaff)
 class HospitalStaffAdmin(admin.ModelAdmin):
-    list_display = ['staff_name', 'hospital_name', 'license_number', 'is_verified', 'created_at']
+    list_display = ['photo_preview', 'staff_name', 'hospital_name', 'license_number', 'is_verified', 'created_at']
     list_filter = ['is_verified', 'hospital_name']
     search_fields = ['staff_name', 'hospital_name', 'license_number']
     actions = ['verify_staff']
+    readonly_fields = ['photo_preview']
+    fields = ['photo_preview', 'staff_name', 'user', 'profile_photo', 'hospital_name', 'department', 'license_number', 'is_verified']
+
+    def photo_preview(self, obj):
+        if obj.profile_photo:
+            return mark_safe(f'<img src="{obj.profile_photo.url}" width="150" height="150" style="border-radius: 12px; object-fit: cover; border: 2px solid #ccc;" />')
+        return "No Photo"
+    photo_preview.short_description = "Staff Photo Preview"
     
     def verify_staff(self, request, queryset):
         queryset.update(is_verified=True)
@@ -59,11 +76,19 @@ class ReportAccessLogAdmin(admin.ModelAdmin):
 
 @admin.register(DoctorProfile)
 class DoctorProfileAdmin(admin.ModelAdmin):
-    list_display = ['full_name', 'specialization', 'hospital_affiliation', 'district', 'license_number', 'is_verified', 'available', 'created_at']
+    list_display = ['photo_preview', 'full_name', 'specialization', 'hospital_affiliation', 'district', 'license_number', 'is_verified', 'available', 'created_at']
     list_filter = ['is_verified', 'specialization', 'district', 'available']
     search_fields = ['full_name', 'license_number', 'hospital_affiliation', 'user__username']
     actions = ['approve_doctors', 'revoke_doctors']
     ordering = ['is_verified', '-created_at']
+    readonly_fields = ['photo_preview']
+    fields = ['photo_preview', 'full_name', 'user', 'profile_photo', 'specialization', 'license_number', 'hospital_affiliation', 'district', 'bio', 'experience_years', 'is_verified', 'available']
+
+    def photo_preview(self, obj):
+        if obj.profile_photo:
+            return mark_safe(f'<img src="{obj.profile_photo.url}" width="150" height="150" style="border-radius: 12px; object-fit: cover; border: 2px solid #ccc;" />')
+        return "No Photo"
+    photo_preview.short_description = "Doctor Photo Preview"
 
     def approve_doctors(self, request, queryset):
         queryset.update(is_verified=True)

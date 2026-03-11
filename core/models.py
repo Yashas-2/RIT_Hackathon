@@ -53,6 +53,7 @@ DISEASE_TYPES = [
     ('Cancer', 'Oncology'),
     ('Neuro', 'Neurological'),
     ('Kidney', 'Renal'),
+    ('Gynecology', 'Gynecology'),
     ('Others', 'Others'),
 ]
 
@@ -85,6 +86,7 @@ SPECIALIZATION_CHOICES = [
     ('Gastro', 'Gastroenterology'),
     ('Dermatology', 'Dermatology'),
     ('Pediatrics', 'Pediatrics'),
+    ('Gynecologist', 'Gynecologist'),
     ('Others', 'Others'),
 ]
 
@@ -99,6 +101,7 @@ class PatientProfile(models.Model):
     aadhaar_last4 = models.CharField(max_length=4, blank=True, null=True)  # Last 4 digits for verification
     disease_type = models.CharField(max_length=50, choices=DISEASE_TYPES)
     phone_number = models.CharField(max_length=15, unique=True)  # Made unique for patient mapping
+    profile_photo = models.ImageField(upload_to='patient_photos/', blank=True, null=True)
     otp_code = models.CharField(max_length=6, blank=True, null=True)
     otp_created_at = models.DateTimeField(blank=True, null=True)
     otp_verified_until = models.DateTimeField(blank=True, null=True)  # Set on successful OTP verify
@@ -148,6 +151,7 @@ class HospitalStaff(models.Model):
     hospital_name = models.CharField(max_length=255)
     department = models.CharField(max_length=100, blank=True, null=True)
     license_number = models.CharField(max_length=100, unique=True)  # Medical license or staff ID
+    profile_photo = models.ImageField(upload_to='staff_photos/', blank=True, null=True)
     is_verified = models.BooleanField(default=False)  # Admin must verify hospital staff
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -173,6 +177,8 @@ class DoctorProfile(models.Model):
     bio = models.TextField(blank=True, null=True)
     experience_years = models.PositiveIntegerField(default=0)
     available = models.BooleanField(default=True)
+    # is_online means the doctor is currently active and can take calls
+    is_online = models.BooleanField(default=False)
     # Admin must verify before doctor can log in
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -184,6 +190,32 @@ class DoctorProfile(models.Model):
     class Meta:
         db_table = 'doctor_profiles'
         verbose_name_plural = 'Doctor Profiles'
+
+
+class Consultation(models.Model):
+    STATUS_CHOICES = [
+        ('REQUESTED', 'Requested'),
+        ('ACCEPTED', 'Accepted'),
+        ('PAID', 'Paid'),
+        ('COMPLETED', 'Completed'),
+        ('CANCELLED', 'Cancelled'),
+    ]
+
+    patient = models.ForeignKey(PatientProfile, on_delete=models.CASCADE, related_name='consultations')
+    doctor = models.ForeignKey(DoctorProfile, on_delete=models.CASCADE, related_name='consultations')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='REQUESTED')
+    fee = models.DecimalField(max_digits=10, decimal_places=2, default=150.00)
+    payment_id = models.CharField(max_length=255, blank=True, null=True)
+    meeting_link = models.CharField(max_length=512, blank=True, null=True) # For future real video integration
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Consultation: {self.patient.user.username} with {self.doctor.full_name}"
+
+    class Meta:
+        db_table = 'consultations'
+        ordering = ['-created_at']
 
 
 class SchemeResult(models.Model):

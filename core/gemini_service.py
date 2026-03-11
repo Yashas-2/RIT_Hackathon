@@ -7,6 +7,7 @@ genai.configure(api_key=settings.GEMINI_API_KEY)
 
 class GeminiAIService:
     def __init__(self):
+        # Use gemini-2.5-flash as per user environment access
         self.model = genai.GenerativeModel('gemini-2.5-flash')
 
     def check_scheme_eligibility(self, patient_data):
@@ -104,8 +105,8 @@ CRITICAL: Return ONLY the JSON object, no extra text before or after.
         Returns structured JSON with findings
         OPTIMIZED: Further optimized for 5-second processing
         """
-        # More aggressive truncation for 5-second requirement
-        truncated_text = report_text[:1000] + "..." if len(report_text) > 1000 else report_text
+        # Increased limit for better accuracy - Flash can handle 4K+ chars quickly
+        truncated_text = report_text[:4000] + "..." if len(report_text) > 4000 else report_text
         
         prompt = f"""
 You are a highly qualified medical AI assistant. Analyze the following medical report and respond ONLY with a valid JSON object. Do not include any markdown formatting, conversational text, or explanations outside the JSON structure.
@@ -178,6 +179,97 @@ CRITICAL INSTRUCTION: Return ONLY the raw JSON object. Do not use ```json blocks
         except Exception as e:
             print(f"Gemini API Error: {str(e)}")
             raise Exception(f"Failed to analyze report using Gemini AI: {str(e)}")
+
+    def recommend_best_doctor(self, report_analysis, doctors):
+        """
+        Analyze report findings and recommend the best doctor from the list.
+        """
+        if not doctors:
+            return None
+            
+        doctor_list_str = "\n".join([
+            f"ID: {d.get('id')} | Name: {d.get('full_name')} | Specialty: {d.get('specialization')} | Exp: {d.get('experience_years')} yrs" 
+            for d in doctors
+        ])
+        
+        prompt = f"""
+You are a medical triage expert. Based on the following AI analysis of a patient's medical report, recommend the MOST appropriate doctor from the provided list.
+
+PATIENT REPORT ANALYSIS:
+{json.dumps(report_analysis, indent=2)}
+
+AVAILABLE DOCTORS:
+{doctor_list_str}
+
+Return ONLY a JSON object with the recommended doctor ID and a brief reason.
+Example: {{"recommended_doctor_id": 123, "reason": "Appropriate specialty for findings"}}
+
+{{"recommended_doctor_id": 
+"""
+        try:
+            # Using flash for high-speed recommendation
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    max_output_tokens=100,
+                    temperature=0.1
+                )
+            )
+            text = response.text.strip()
+            # Handle potential JSON prefixing from the prompt hack
+            if not text.startswith('{'):
+                text = '{"recommended_doctor_id": ' + text
+            
+            # Basic cleanup
+            if '}' not in text: text += '}'
+            
+            result = json.loads(text)
+            return result.get('recommended_doctor_id')
+        except Exception as e:
+            print(f"Recommendation Error: {e}")
+            return doctors[0].get('id') if doctors else None
+
+    def get_chat_response(self, user_message, chat_history=[], doctor_context=None):
+        """
+        Generate a medical AI chat response for patients.
+        Incorporates doctor specialization context if available.
+        """
+        system_prompt = "You are a helpful medical assistant. Provide accurate, empathetic, and professional health advice."
+        if doctor_context:
+            system_prompt += f" You are currently representing Dr. {doctor_context.get('full_name')} who is a {doctor_context.get('specialization')}. Keep your advice within this specialization but remain general if needed."
+        
+        # Format chat history for Gemini
+        history_str = ""
+        for msg in chat_history[-6:]: # Keep last 6 messages
+            role = "Patient" if msg.get('from') == 'patient' else "Assistant"
+            history_str += f"{role}: {msg.get('text')}\n"
+
+        prompt = f"""
+{system_prompt}
+
+Recent Chat Context:
+{history_str}
+Patient: {user_message}
+
+Rules:
+1. Be concise and helpful.
+2. If the user asks for things outside medical advice, politely redirect them.
+3. ALWAYS include a disclaimer that this is AI advice and they should consult a real doctor for serious issues.
+4. Response should be plain text.
+"""
+        try:
+            response = self.model.generate_content(
+                prompt,
+                generation_config=genai.types.GenerationConfig(
+                    max_output_tokens=500,
+                    temperature=0.7,
+                    top_p=0.9
+                )
+            )
+            return response.text.strip()
+        except Exception as e:
+            print(f"Gemini Chat Error: {str(e)}")
+            return "I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment."
 
 # Initialize service
 gemini_service = GeminiAIService()

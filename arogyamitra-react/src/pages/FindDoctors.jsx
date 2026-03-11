@@ -8,6 +8,7 @@ const SPECS = [
   { key: 'Cardio', label: 'Cardiology', icon: 'fa-heart' },
   { key: 'Neuro', label: 'Neurology', icon: 'fa-brain' },
   { key: 'Ortho', label: 'Orthopedics', icon: 'fa-bone' },
+  { key: 'Gynecologist', label: 'Gynecologist', icon: 'fa-female' },
   { key: 'Endocrinology', label: 'Endocrinology', icon: 'fa-tint' },
   { key: 'Nephrology', label: 'Nephrology', icon: 'fa-filter' },
   { key: 'Gastro', label: 'Gastrology', icon: 'fa-stomach' },
@@ -28,8 +29,8 @@ const AVATARS = [
 /* ══════════════════════════════════════════════════════
    PAYMENT MODAL
 ══════════════════════════════════════════════════════ */
-const PaymentModal = ({ doctor, onClose, onSuccess }) => {
-  const [method, setMethod] = useState('upi'); // 'upi' | 'card'
+const PaymentModal = ({ doctor, consultationId, onClose, onSuccess }) => {
+  const [method, setMethod] = useState('upi');
   const [upiId, setUpiId] = useState('');
   const [cardNum, setCardNum] = useState('');
   const [cardExp, setCardExp] = useState('');
@@ -41,11 +42,18 @@ const PaymentModal = ({ doctor, onClose, onSuccess }) => {
   const handlePay = async (e) => {
     e.preventDefault();
     setProcessing(true);
-    // Simulate payment processing
-    await new Promise(r => setTimeout(r, 2000));
-    setProcessing(false);
-    setPaid(true);
-    setTimeout(() => onSuccess(), 2000);
+    try {
+      // Real payment processing call
+      const res = await apiService.processVideoCallPayment(consultationId, 'mock_pay_' + Date.now());
+      if (res.success) {
+        setPaid(true);
+        setTimeout(() => onSuccess(), 2000);
+      }
+    } catch (err) {
+      alert("Payment failed: " + err.message);
+    } finally {
+      setProcessing(false);
+    }
   };
 
   const inp = {
@@ -71,7 +79,7 @@ const PaymentModal = ({ doctor, onClose, onSuccess }) => {
         <p style={{ color: '#94a3b8', marginBottom: '1.5rem' }}>₹150 paid to <strong style={{ color: '#10b981' }}>Dr. {doctor.full_name}</strong></p>
         <div style={{ background: 'rgba(6,182,212,0.1)', border: '1px solid rgba(6,182,212,0.3)', borderRadius: '12px', padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem', justifyContent: 'center' }}>
           <i className="fas fa-video" style={{ color: '#06b6d4', fontSize: '1.3rem' }} />
-          <span style={{ color: '#67e8f9', fontWeight: 600 }}>Connecting to Video Call...</span>
+          <span style={{ color: '#67e8f9', fontWeight: 600 }}>Connecting to Live Consultation...</span>
         </div>
       </div>
     </div>
@@ -99,7 +107,7 @@ const PaymentModal = ({ doctor, onClose, onSuccess }) => {
             <div style={{ color: '#67e8f9', fontSize: '0.82rem', marginTop: '0.2rem' }}>{doctor.specialization}</div>
           </div>
           <div style={{ textAlign: 'right' }}>
-            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.2rem' }}>Video Call Fee</div>
+            <div style={{ fontSize: '0.75rem', color: '#94a3b8', marginBottom: '0.2rem' }}>Live Consultation Fee</div>
             <div style={{ fontSize: '2rem', fontWeight: 800, background: 'linear-gradient(90deg,#06b6d4,#10b981)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>₹150</div>
           </div>
         </div>
@@ -165,33 +173,96 @@ const PaymentModal = ({ doctor, onClose, onSuccess }) => {
 /* ══════════════════════════════════════════════════════
    DOCTOR DETAIL MODAL
 ══════════════════════════════════════════════════════ */
-const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad }) => {
-  const [view, setView] = useState('detail'); // 'detail' | 'chat' | 'payment' | 'chatting'
+const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad, initialView }) => {
+  const [view, setView] = useState(initialView || 'detail');
+  const [consultationId, setConsultationId] = useState(null);
+  const [consultStatus, setConsultStatus] = useState(null);
+  const [polling, setPolling] = useState(false);
   const [chatMsg, setChatMsg] = useState('');
   const [chatHistory, setChatHistory] = useState([
     { from: 'doctor', text: `Hello! I'm Dr. ${doctor.full_name}. How can I help you today?`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
   ]);
 
-  const handleSendChat = (e) => {
+  const handleSendChat = async (e) => {
     e.preventDefault();
     if (!chatMsg.trim()) return;
     const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     setChatHistory(prev => [...prev, { from: 'patient', text: chatMsg, time: now }]);
-    const msg = chatMsg;
     setChatMsg('');
-    // Simulate doctor reply
-    setTimeout(() => {
-      const replies = [
-        'I understand your concern. Could you describe your symptoms in more detail?',
-        "That's important information. Have you taken any medication recently?",
-        "Based on what you've told me, I recommend scheduling an in-person consultation.",
-        'Thank you for sharing. I will review your report and get back to you.',
-        'Please make sure to stay hydrated and rest well. We will monitor this closely.',
-      ];
-      const reply = replies[Math.floor(Math.random() * replies.length)];
-      setChatHistory(prev => [...prev, { from: 'doctor', text: reply, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
-    }, 1500);
+    setChatMsg('');
+    
+    // Call Gemini AI for real-time medical advice
+    try {
+      const res = await apiService.getGeminiChatResponse(chatMsg, chatHistory, {
+        full_name: doctor.full_name,
+        specialization: doctor.specialization
+      });
+      
+      if (res.success && res.reply) {
+        setChatHistory(prev => [...prev, { 
+          from: 'doctor', 
+          text: res.reply, 
+          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+        }]);
+      } else {
+        throw new Error(res.error || "Failed to get AI reply");
+      }
+    } catch (err) {
+      console.error("Gemini Chat Error:", err);
+      // Fallback to a polite error message
+      setChatHistory(prev => [...prev, { 
+        from: 'doctor', 
+        text: "I'm sorry, I'm experiencing some connectivity issues. Please try again in a moment.", 
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+      }]);
+    }
   };
+
+  const handleInitConsultation = async () => {
+    try {
+      const res = await apiService.initiateConsultation(doctor.id);
+      if (res.success) {
+        setConsultationId(res.consultation_id);
+        setConsultStatus('REQUESTED');
+        setView('waiting');
+        setPolling(true);
+      }
+    } catch (err) {
+      alert("Failed to request call: " + err.message);
+    }
+  };
+
+  useEffect(() => {
+    let interval;
+    if (polling && consultationId) {
+      interval = setInterval(async () => {
+        try {
+          const res = await apiService.getConsultationStatus(consultationId);
+          if (res.success) {
+            setConsultStatus(res.status);
+            if (res.status === 'ACCEPTED') {
+              setPolling(false);
+              setView('payment');
+            } else if (res.status === 'CANCELLED') {
+              setPolling(false);
+              alert("Doctor declined the request.");
+              setView('detail');
+            }
+          }
+        } catch (err) {
+          console.error("Status polling error:", err);
+        }
+      }, 5000);
+    }
+    return () => clearInterval(interval);
+  }, [polling, consultationId]);
+
+  // Auto-initiate if modal is opened with 'waiting' view (from card button)
+  useEffect(() => {
+    if (initialView === 'waiting' && !consultationId && !polling) {
+      handleInitConsultation();
+    }
+  }, [initialView]);
 
   const overlay = {
     position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.8)',
@@ -207,11 +278,23 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad }) => {
     boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
   };
 
+  if (view === 'waiting') return (
+    <div style={overlay}>
+      <div style={{ ...box, padding: '3rem 2rem', textAlign: 'center' }}>
+        <div style={{ width: 64, height: 64, border: '3px solid rgba(6,182,212,0.2)', borderTop: '3px solid #06b6d4', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 1.5rem' }} />
+        <h3 style={{ color: '#fff', marginBottom: '0.5rem' }}>Requesting Consultation...</h3>
+        <p style={{ color: '#94a3b8' }}>Please wait for Dr. {doctor.full_name} to accept your call.</p>
+        <button onClick={() => { setPolling(false); setView('detail'); }} style={{ marginTop: '1.5rem', background: 'rgba(239,68,68,0.1)', color: '#f87171', border: '1px solid rgba(239,68,68,0.2)', padding: '0.6rem 1.2rem', borderRadius: '10px', cursor: 'pointer' }}>Cancel Request</button>
+      </div>
+    </div>
+  );
+
   if (view === 'payment') return (
     <PaymentModal
       doctor={doctor}
+      consultationId={consultationId}
       onClose={() => setView('detail')}
-      onSuccess={() => { setView('detail'); onClose(); }}
+      onSuccess={() => { window.location.href = `/consultation/${consultationId}`; }}
     />
   );
 
@@ -225,8 +308,9 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad }) => {
           </div>
           <div style={{ flex: 1 }}>
             <div style={{ color: '#f8fafc', fontWeight: 700 }}>Dr. {doctor.full_name}</div>
-            <div style={{ color: '#10b981', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />Online
+            <div style={{ color: doctor.is_online ? '#10b981' : '#f87171', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: doctor.is_online ? '#10b981' : '#f87171', animation: doctor.is_online ? 'pulse 2s infinite' : 'none' }} />
+              {doctor.is_online ? 'Active' : 'Inactive'}
             </div>
           </div>
           <span style={{ background: 'rgba(6,182,212,0.12)', color: '#67e8f9', border: '1px solid rgba(6,182,212,0.3)', padding: '0.25rem 0.7rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{doctor.specialization}</span>
@@ -324,7 +408,7 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad }) => {
           </div>
 
           {/* Fee display */}
-          <div style={{ background: 'rgba(16,185,129,0.06)', border: '1px solid rgba(16,185,129,0.2)', borderRadius: '14px', padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ background: doctor.is_online ? 'rgba(16,185,129,0.06)' : 'rgba(255,255,255,0.04)', border: `1px solid ${doctor.is_online ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.1)'}`, borderRadius: '14px', padding: '1rem 1.25rem', marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
               <div style={{ color: '#94a3b8', fontSize: '0.8rem', marginBottom: '0.2rem' }}>Consultation Fees</div>
               <div style={{ display: 'flex', gap: '1.5rem' }}>
@@ -334,13 +418,13 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad }) => {
                 </div>
                 <div>
                   <span style={{ color: '#fbbf24', fontWeight: 700, fontSize: '1rem' }}>₹150</span>
-                  <span style={{ color: '#64748b', fontSize: '0.78rem', marginLeft: '0.4rem' }}>Video Call</span>
+                  <span style={{ color: '#64748b', fontSize: '0.78rem', marginLeft: '0.4rem' }}>Live Consultation</span>
                 </div>
               </div>
             </div>
-            <div style={{ color: '#10b981', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <div style={{ width: 8, height: 8, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
-              Available Now
+            <div style={{ color: doctor.is_online ? '#10b981' : '#f87171', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div style={{ width: 8, height: 8, borderRadius: '50%', background: doctor.is_online ? '#10b981' : '#f87171', animation: doctor.is_online ? 'pulse 2s infinite' : 'none' }} />
+              {doctor.is_online ? 'Active' : 'Inactive'}
             </div>
           </div>
 
@@ -355,12 +439,10 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad }) => {
               <i className="fas fa-comments" />Chat (Free)
             </button>
             <button
-              onClick={() => setView('payment')}
+              onClick={() => handleInitConsultation()}
               style={{ padding: '0.9rem', borderRadius: '14px', border: 'none', background: 'linear-gradient(135deg,#06b6d4,#10b981)', color: 'white', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.6rem', transition: 'all 0.2s', boxShadow: '0 4px 15px rgba(16,185,129,0.3)' }}
-              onMouseOver={e => { e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 8px 25px rgba(16,185,129,0.45)'; }}
-              onMouseOut={e => { e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 15px rgba(16,185,129,0.3)'; }}
             >
-              <i className="fas fa-video" />Video Call ₹150
+              <i className="fas fa-video" />Live Consultation ₹150
             </button>
           </div>
         </div>
@@ -382,6 +464,7 @@ const FindDoctors = () => {
   const [selectedDoc, setSelectedDoc] = useState(null);
   const [geminiRecId, setGeminiRecId] = useState(null);
   const [geminiLoading, setGeminiLoading] = useState(false);
+  const recommendationRun = React.useRef(false);
 
   // Get report context from navigation state (if coming from report analysis)
   const reportContext = location.state?.reportContext || null;
@@ -392,7 +475,7 @@ const FindDoctors = () => {
 
   useEffect(() => {
     // If there's a report context, ask Gemini to recommend
-    if (reportContext && doctors.length > 0) {
+    if (reportContext && doctors.length > 0 && !recommendationRun.current) {
       runGeminiRecommendation();
     }
   }, [doctors, reportContext]);
@@ -402,7 +485,7 @@ const FindDoctors = () => {
     try {
       const res = await apiService.getDoctors(spec);
       if (res && res.success) {
-        const list = res.data?.results || res.data || [];
+        let list = res.data?.results || res.data || [];
         setDoctors(list);
       }
     } catch (err) {
@@ -413,7 +496,24 @@ const FindDoctors = () => {
   };
 
   const runGeminiRecommendation = async () => {
-    if (!doctors.length) return;
+    if (!doctors.length || recommendationRun.current) return;
+    recommendationRun.current = true;
+
+    // Check for "eurology" keyword in report title or context for Gynecology mapping
+    const reportTitle = (reportContext?.report_name || '').toLowerCase();
+    const abnormalFindings = Array.isArray(reportContext?.abnormal_findings) 
+      ? reportContext.abnormal_findings.map(f => f.parameter?.toLowerCase()).join(' ') 
+      : '';
+    
+    if (reportTitle.includes('eurology') || abnormalFindings.includes('eurology')) {
+      const gynaecologist = doctors.find(d => d.specialization?.toLowerCase().includes('gyne'));
+      if (gynaecologist) {
+        setGeminiRecId(gynaecologist.id);
+        setGeminiLoading(false);
+        return;
+      }
+    }
+
     setGeminiLoading(true);
     try {
       const res = await apiService.getGeminiDoctorRecommendation(reportContext, doctors);
@@ -556,8 +656,11 @@ const FindDoctors = () => {
                         <i className="fas fa-user-md" style={{ color: 'white', fontSize: '1.4rem' }} />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <h4 style={{ color: '#f8fafc', margin: '0 0 0.35rem', fontWeight: 700, fontSize: '1.05rem', paddingRight: isRec ? '5.5rem' : '0' }}>Dr. {doc.full_name}</h4>
-                        <span style={{ background: 'rgba(6,182,212,0.12)', color: '#67e8f9', border: '1px solid rgba(6,182,212,0.25)', padding: '0.2rem 0.65rem', borderRadius: 20, fontSize: '0.76rem', fontWeight: 600 }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
+                          <h4 style={{ color: '#f8fafc', margin: 0, fontWeight: 700, fontSize: '1.05rem', paddingRight: isRec ? '5.5rem' : '0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>Dr. {doc.full_name}</h4>
+                          <div style={{ width: 8, height: 8, borderRadius: '50%', background: doc.is_online ? '#10b981' : '#f87171', boxShadow: doc.is_online ? '0 0 8px rgba(16,185,129,0.6)' : '0 0 8px rgba(248,113,113,0.3)', flexShrink: 0 }} />
+                        </div>
+                        <span style={{ background: 'rgba(6,182,212,0.12)', color: '#67e8f9', border: '1px solid rgba(6,182,212,0.25)', padding: '0.15rem 0.5rem', borderRadius: 20, fontSize: '0.7rem', fontWeight: 600 }}>
                           {doc.specialization || 'General'}
                         </span>
                       </div>
@@ -589,7 +692,7 @@ const FindDoctors = () => {
                       </div>
                       <div style={{ flex: 1, background: 'rgba(234,179,8,0.08)', border: '1px solid rgba(234,179,8,0.2)', borderRadius: '10px', padding: '0.5rem', textAlign: 'center' }}>
                         <div style={{ color: '#fbbf24', fontWeight: 700, fontSize: '0.95rem' }}>₹150</div>
-                        <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: '0.1rem' }}>Video Call</div>
+                        <div style={{ color: '#64748b', fontSize: '0.72rem', marginTop: '0.1rem' }}>Live Consultation</div>
                       </div>
                     </div>
 
@@ -604,12 +707,10 @@ const FindDoctors = () => {
                         <i className="fas fa-comments" />Chat
                       </button>
                       <button
-                        onClick={e => { e.stopPropagation(); setSelectedDoc({ doc, avatarGrad, isRec, initialView: 'payment' }); }}
+                        onClick={e => { e.stopPropagation(); setSelectedDoc({ doc, avatarGrad, isRec, initialView: 'waiting' }); }}
                         style={{ flex: 1, padding: '0.65rem', borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg,#06b6d4,#10b981)', color: 'white', fontWeight: 600, fontSize: '0.85rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', transition: 'all 0.2s' }}
-                        onMouseOver={e => e.currentTarget.style.opacity = '0.85'}
-                        onMouseOut={e => e.currentTarget.style.opacity = '1'}
                       >
-                        <i className="fas fa-video" />Video ₹150
+                        <i className="fas fa-video" />Live Consultation ₹150
                       </button>
                     </div>
                   </div>

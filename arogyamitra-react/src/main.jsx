@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
 import { AuthProvider } from './components/AuthProvider'
+import { LanguageProvider } from './components/LanguageProvider'
 
 // Add CSS variables to root element
 const rootElement = document.documentElement;
@@ -96,7 +97,9 @@ class ErrorBoundary extends React.Component {
 ReactDOM.createRoot(document.getElementById('root')).render(
   <ErrorBoundary>
     <AuthProvider>
-      <App />
+      <LanguageProvider>
+        <App />
+      </LanguageProvider>
     </AuthProvider>
   </ErrorBoundary>
 )

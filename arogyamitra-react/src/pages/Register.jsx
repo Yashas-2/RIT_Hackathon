@@ -23,7 +23,9 @@ const Register = () => {
     license_number: '',
     specialization: 'General',
     experience_years: '',
-    bio: ''
+    bio: '',
+    profile_photo: null,
+    photo_preview: null
   });
 
   const { register } = useAuth();
@@ -43,7 +45,7 @@ const Register = () => {
   const diseaseTypes = [
     'General', 'Cardio', 'Neuro', 'Ortho', 'Hematology', 
     'Endocrinology', 'Nephrology', 'Oncology', 'Pulmonology', 
-    'Gastro', 'Dermatology', 'Pediatrics', 'Others'
+    'Gastro', 'Dermatology', 'Pediatrics', 'Gynecologist', 'Others'
   ];
 
   const handleChange = (e) => {
@@ -52,6 +54,17 @@ const Register = () => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setFormData(prev => ({
+        ...prev,
+        profile_photo: file,
+        photo_preview: URL.createObjectURL(file)
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
@@ -64,59 +77,49 @@ const Register = () => {
     }
     
     try {
-      let userData;
+      const data = new FormData();
+      data.append('user_type', userType);
+      data.append('username', formData.username);
+      data.append('email', formData.email);
+      data.append('password', formData.password);
       
-      if (userType === 'patient') {
-        userData = {
-          user_type: 'patient',
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-          full_name: formData.name,
-          phone_number: formData.phone,
-          age: parseInt(formData.age),
-          district: formData.district,
-          economic_status: formData.economic_status,
-          has_ration_card: formData.has_ration_card,
-          has_aadhaar: formData.has_aadhaar,
-          aadhaar_last4: formData.aadhaar_last4,
-          disease_type: formData.disease_type
-        };
-      } else if (userType === 'hospital') {
-        userData = {
-          user_type: 'hospital',
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-          staff_name: formData.name,
-          hospital_name: formData.hospital_name,
-          department: formData.department,
-          license_number: formData.license_number
-        };
-      } else if (userType === 'doctor') {
-        userData = {
-          user_type: 'doctor',
-          username: formData.username,
-          email: formData.email,
-          password: formData.password,
-          full_name: formData.name,
-          phone: formData.phone,
-          specialization: formData.specialization,
-          license_number: formData.license_number,
-          hospital_affiliation: formData.hospital_name, // Reusing form field
-          district: formData.district,
-          bio: formData.bio,
-          experience_years: formData.experience_years
-        };
+      if (formData.profile_photo) {
+        data.append('profile_photo', formData.profile_photo);
       }
       
-      const response = await register(userData);
+      if (userType === 'patient') {
+        data.append('full_name', formData.name);
+        data.append('phone_number', formData.phone);
+        data.append('age', formData.age);
+        data.append('district', formData.district);
+        data.append('economic_status', formData.economic_status);
+        data.append('has_ration_card', formData.has_ration_card);
+        data.append('has_aadhaar', formData.has_aadhaar);
+        data.append('aadhaar_last4', formData.aadhaar_last4);
+        data.append('disease_type', formData.disease_type);
+      } else if (userType === 'hospital') {
+        data.append('staff_name', formData.name);
+        data.append('hospital_name', formData.hospital_name);
+        data.append('department', formData.department);
+        data.append('license_number', formData.license_number);
+      } else if (userType === 'doctor') {
+        data.append('full_name', formData.name);
+        data.append('phone', formData.phone);
+        data.append('specialization', formData.specialization);
+        data.append('license_number', formData.license_number);
+        data.append('hospital_affiliation', formData.hospital_name);
+        data.append('district', formData.district);
+        data.append('bio', formData.bio);
+        data.append('experience_years', formData.experience_years);
+      }
+      
+      const response = await register(data);
       
       if (response.success) {
         alert('Registration successful! Please login.');
         navigate('/login');
       } else {
-        alert('Registration failed: ' + (response.message || 'Please try again'));
+        alert('Registration failed: ' + (response.error || response.message || 'Please try again'));
       }
     } catch (error) {
       console.error('Registration error:', error);
@@ -413,6 +416,21 @@ const Register = () => {
           ) : (
             <>
               <div className="row">
+                <div className="col-12 mb-4 text-center">
+                  <div className="profile-photo-upload">
+                    <div className="photo-preview-container mb-3" style={{ border: '2px dashed var(--neon-blue)', borderRadius: '50%', width: '120px', height: '120px', margin: '0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', backgroundColor: 'rgba(0, 243, 255, 0.05)' }}>
+                      {formData.photo_preview ? (
+                        <img src={formData.photo_preview} alt="Profile Preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                      ) : (
+                        <i className="fas fa-camera fa-2x" style={{ color: 'var(--neon-blue)', opacity: 0.5 }}></i>
+                      )}
+                    </div>
+                    <label className="btn btn-outline-sm" style={{ padding: '0.4rem 0.8rem', fontSize: '0.85rem', cursor: 'pointer' }}>
+                      <i className="fas fa-upload me-2"></i> Upload Profile Photo
+                      <input type="file" name="profile_photo" onChange={handleFileChange} accept="image/*" style={{ display: 'none' }} />
+                    </label>
+                  </div>
+                </div>
                 <div className="col-md-6 mb-3">
                   <label className="form-label">Full Name</label>
                   <div className="input-wrapper">
