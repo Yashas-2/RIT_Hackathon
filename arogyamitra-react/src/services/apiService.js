@@ -1,8 +1,8 @@
 // Service to connect to Django REST Framework APIs
 
 class ApiService {
-  constructor(baseUrl = 'http://127.0.0.1:8000') {
-    this.baseUrl = baseUrl;
+  constructor(baseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000') {
+    this.baseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
     // Don't initialize token here, let it be set when needed
     this.token = null;
     this.refreshToken = null;
