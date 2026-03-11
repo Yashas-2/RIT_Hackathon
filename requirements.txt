@@ -18,6 +18,7 @@ psycopg2-binary==2.9.11
 
 # Configuration
 python-decouple==3.8
+dj-database-url==2.1.0
 cryptography==43.0.3
 
 # Development
