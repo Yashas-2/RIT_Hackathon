@@ -175,14 +175,14 @@ const ConsultationRoom = () => {
             <button 
                 onClick={() => setMicOn(!micOn)}
                 title={micOn ? "Mute Microphone" : "Unmute Microphone"}
-                style={{ width: 52, height: 52, borderRadius: '16px', border: 'none', background: micOn ? 'rgba(255,255,255,0.05)' : '#ef4444', color: micOn ? '#f8fafc' : '#fff', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', border: micOn ? '1px solid rgba(255,255,255,0.1)' : 'none' }}
+                style={{ width: 52, height: 52, borderRadius: '16px', background: micOn ? 'rgba(255,255,255,0.05)' : '#ef4444', color: micOn ? '#f8fafc' : '#fff', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', border: micOn ? '1px solid rgba(255,255,255,0.1)' : 'none' }}
             >
                 <i className={micOn ? "fas fa-microphone" : "fas fa-microphone-slash"} />
             </button>
             <button 
                 onClick={() => setVideoOn(!videoOn)}
                 title={videoOn ? "Stop Video" : "Start Video"}
-                style={{ width: 52, height: 52, borderRadius: '16px', border: 'none', background: videoOn ? 'rgba(255,255,255,0.05)' : '#ef4444', color: videoOn ? '#f8fafc' : '#fff', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', border: videoOn ? '1px solid rgba(255,255,255,0.1)' : 'none' }}
+                style={{ width: 52, height: 52, borderRadius: '16px', background: videoOn ? 'rgba(255,255,255,0.05)' : '#ef4444', color: videoOn ? '#f8fafc' : '#fff', fontSize: '1.2rem', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', border: videoOn ? '1px solid rgba(255,255,255,0.1)' : 'none' }}
             >
                 <i className={videoOn ? "fas fa-video" : "fas fa-video-slash"} />
             </button>
