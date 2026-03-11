@@ -167,8 +167,19 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='http://localhost:5173', cast=Csv())
-
+# If you want to allow all origins during initial testing:
+CORS_ALLOW_ALL_ORIGINS = config('CORS_ALLOW_ALL_ORIGINS', default=False, cast=bool)
 CORS_ALLOW_CREDENTIALS = True
 
 # CSRF Settings for React integration
 CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://localhost:5173', cast=Csv())
+
+# Extra: Trusting Render's subdomains for easy testing
+if config('RENDER', default=False, cast=bool):
+    render_host = config('RENDER_EXTERNAL_URL', default='')
+    if render_host:
+        import urllib.parse
+        parsed = urllib.parse.urlparse(render_host)
+        host = parsed.netloc
+        if host not in ALLOWED_HOSTS:
+            ALLOWED_HOSTS.append(host)
