@@ -2,12 +2,11 @@
 
 class ApiService {
   constructor(baseUrl = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000') {
-    let cleanedUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-    // Strip /api if it's at the end of the URL to avoid double /api/api
-    if (cleanedUrl.endsWith('/api')) {
-      cleanedUrl = cleanedUrl.slice(0, -4);
+    this.baseUrl = baseUrl;
+    // Ensure baseUrl doesn't have a trailing slash if consistency is needed
+    if (this.baseUrl.endsWith('/')) {
+      this.baseUrl = this.baseUrl.slice(0, -1);
     }
-    this.baseUrl = cleanedUrl;
     // Don't initialize token here, let it be set when needed
     this.token = null;
     this.refreshToken = null;
