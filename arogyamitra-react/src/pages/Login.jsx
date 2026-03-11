@@ -171,26 +171,13 @@ const Login = () => {
           
           <h1 style={{ 
             fontFamily: 'Montserrat, sans-serif', 
-            fontSize: '2.2rem', 
+            fontSize: '2.4rem', 
             fontWeight: '800', 
             marginBottom: '0.75rem', 
-            letterSpacing: '-0.5px',
-            color: 'var(--text-primary)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '0.6rem',
+            color: '#f8fafc',
             transition: 'all 0.5s ease'
           }}>
-            <span style={{ 
-              background: theme.gradient, 
-              WebkitBackgroundClip: 'text', 
-              WebkitTextFillColor: 'transparent',
-              backgroundClip: 'text'
-            }}>
-              {theme.label}
-            </span> 
-            <span>Login</span>
+            {theme.label} Login
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', fontWeight: '500', maxWidth: '350px', margin: '0 auto', lineHeight: '1.5' }}>
             {theme.description}

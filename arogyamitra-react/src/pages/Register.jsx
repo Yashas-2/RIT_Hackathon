@@ -48,6 +48,13 @@ const Register = () => {
     'Gastro', 'Dermatology', 'Pediatrics', 'Gynecologist', 'Others'
   ];
 
+  const roleThemes = {
+    patient: { id: 'patient', label: 'Patient', icon: 'fa-user', gradient: 'linear-gradient(135deg, #10b981 0%, #06b6d4 100%)', shadow: 'rgba(16, 185, 129, 0.4)' },
+    hospital: { id: 'hospital', label: 'Hospital Staff', icon: 'fa-hospital-user', gradient: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)', shadow: 'rgba(245, 158, 11, 0.4)' },
+    doctor: { id: 'doctor', label: 'Doctor', icon: 'fa-user-md', gradient: 'linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%)', shadow: 'rgba(139, 92, 246, 0.4)' }
+  };
+  const theme = roleThemes[userType];
+
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
@@ -130,38 +137,57 @@ const Register = () => {
   return (
     <div className="container" style={{ paddingTop: '6rem', paddingBottom: '4rem' }}>
       <div className="glass-card" style={{ maxWidth: '700px', margin: '0 auto' }}>
-        <h1 className="text-center mb-4" style={{ background: 'var(--gradient-neon)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>
-          Create <span className="gradient-text">Account</span>
+        <h1 className="text-center" style={{ 
+          fontFamily: 'Montserrat, sans-serif', 
+          fontSize: '2.4rem', 
+          fontWeight: '800', 
+          marginBottom: '0.75rem', 
+          color: '#f8fafc',
+          transition: 'all 0.5s ease'
+        }}>
+          Create Account
         </h1>
         
-        <div className="text-center mb-4">
-          <h3>Select your account type to get started</h3>
-        </div>
+        <p className="text-center mb-4" style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', fontWeight: '500', maxWidth: '350px', margin: '0 auto 2.5rem', lineHeight: '1.5' }}>
+          Select your account type to get started
+        </p>
         
-        <div className="d-flex justify-content-center mb-4">
-          <div className="btn-group" role="group" style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', justifyContent: 'center' }}>
+        <div style={{ 
+          display: 'flex', 
+          background: 'rgba(0, 0, 0, 0.2)', 
+          padding: '0.5rem', 
+          borderRadius: '20px', 
+          marginBottom: '3rem',
+          border: '1px solid rgba(255, 255, 255, 0.05)'
+        }}>
+          {Object.values(roleThemes).map((role) => (
             <button
+              key={role.id}
               type="button"
-              className={`btn ${userType === 'patient' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setUserType('patient')}
+              onClick={() => setUserType(role.id)}
+              style={{ 
+                flex: '1', 
+                padding: '1rem', 
+                border: 'none',
+                background: userType === role.id ? role.gradient : 'transparent',
+                color: userType === role.id ? 'white' : 'var(--text-secondary)',
+                borderRadius: '16px', 
+                fontWeight: '700', 
+                cursor: 'pointer', 
+                transition: 'all 0.4s cubic-bezier(0.22, 0.61, 0.36, 1)', 
+                display: 'flex', 
+                flexDirection: 'column',
+                alignItems: 'center', 
+                gap: '0.5rem',
+                fontSize: '0.85rem',
+                boxShadow: userType === role.id ? `0 8px 20px ${role.shadow}` : 'none',
+                transform: userType === role.id ? 'scale(1.05)' : 'scale(1)'
+              }}
             >
-              <i className="fas fa-user me-2"></i> Patient
+              <i className={`fas ${role.icon}`} style={{ fontSize: '1.2rem' }}></i>
+              {role.label}
             </button>
-            <button
-              type="button"
-              className={`btn ${userType === 'hospital' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setUserType('hospital')}
-            >
-              <i className="fas fa-hospital me-2"></i> Hospital Staff
-            </button>
-            <button
-              type="button"
-              className={`btn ${userType === 'doctor' ? 'btn-primary' : 'btn-outline'}`}
-              onClick={() => setUserType('doctor')}
-            >
-              <i className="fas fa-user-md me-2"></i> Doctor
-            </button>
-          </div>
+          ))}
         </div>
         
         <form onSubmit={handleSubmit}>
@@ -632,8 +658,22 @@ const Register = () => {
             </div>
           </div>
           
-          <button type="submit" className="btn btn-glow" style={{ width: '100%' }}>
-            <i className="fas fa-user-plus"></i> Register
+          <button 
+            type="submit" 
+            className="btn" 
+            style={{ 
+              width: '100%', 
+              padding: '1.25rem', 
+              background: theme.gradient, 
+              color: 'white', 
+              fontSize: '1.2rem', 
+              borderRadius: '18px',
+              boxShadow: `0 10px 30px ${theme.shadow}`,
+              border: 'none',
+              fontWeight: '700'
+            }}
+          >
+            <i className="fas fa-user-plus me-2"></i> Register
           </button>
         </form>
         

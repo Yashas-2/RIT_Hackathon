@@ -549,7 +549,7 @@ const ReportVault = () => {
                   pattern="[0-9]*"
                   required
                   autoFocus
-                  style={{ width: '100%', padding: '0.85rem 1rem', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, color: '#f8fafc', fontSize: '1.5rem', letterSpacing: '0.5rem', textAlign: 'center', outline: 'none' }}
+                  style={{ width: '100%', padding: '0.85rem 1rem', background: 'rgba(0,0,0,0.25)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: 12, color: '#f8fafc', fontSize: '1.1rem', letterSpacing: '0.2rem', textAlign: 'center', outline: 'none' }}
                 />
               </div>
               <button type="submit" className="btn btn-glow" style={{ width: '100%' }}>
@@ -647,8 +647,8 @@ const ReportVault = () => {
               <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
                 {/* Title + badge */}
                 <div className="d-flex justify-content-between align-items-start mb-3">
-                  <h4 className="text-white mb-0" style={{ fontSize: '1rem', flex: 1, marginRight: '0.5rem' }}>
-                    {report.title}
+                  <h4 className="text-white mb-0" style={{ fontSize: '1.1rem', fontWeight: 700, flex: 1, marginRight: '0.5rem', letterSpacing: '-0.01em' }}>
+                    {report.title?.replace(/scnning/i, 'Scanning')}
                   </h4>
                   {report.is_analyzed ? (
                     <span style={{ background: 'rgba(34,197,94,0.12)', border: '1px solid #22c55e', color: '#4ade80', padding: '0.2rem 0.6rem', borderRadius: 50, fontSize: '0.75rem', fontWeight: 600, whiteSpace: 'nowrap' }}>
@@ -663,18 +663,28 @@ const ReportVault = () => {
 
                 {/* Details */}
                 <div style={{ flex: 1, marginBottom: '1rem', fontSize: '0.875rem' }}>
-                  <p className="mb-2" style={{ color: '#94a3b8' }}>
-                    <i className="fas fa-file-medical me-2" style={{ color: 'var(--accent-emerald)', width: 16 }}></i>
-                    {report.scan_type}
-                  </p>
-                  <p className="mb-2" style={{ color: '#94a3b8' }}>
-                    <i className="fas fa-hospital me-2" style={{ color: 'var(--accent-emerald)', width: 16 }}></i>
-                    {report.hospital_name}
-                  </p>
-                  <p className="mb-0" style={{ color: '#94a3b8' }}>
-                    <i className="fas fa-calendar me-2" style={{ color: 'var(--accent-emerald)', width: 16 }}></i>
-                    {new Date(report.uploaded_date || report.test_date).toLocaleDateString()}
-                  </p>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#cbd5e1' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'rgba(16,185,129,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <i className="fas fa-file-medical" style={{ color: '#10b981', fontSize: '0.9rem' }}></i>
+                      </div>
+                      <span style={{ fontSize: '0.95rem' }}>{report.scan_type}</span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#94a3b8' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'rgba(6,182,212,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <i className="fas fa-hospital" style={{ color: '#06b6d4', fontSize: '0.9rem' }}></i>
+                      </div>
+                      <span style={{ fontSize: '0.9rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{report.hospital_name}</span>
+                    </div>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', color: '#64748b' }}>
+                      <div style={{ width: 32, height: 32, borderRadius: '8px', background: 'rgba(255,255,255,0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                        <i className="fas fa-calendar-alt" style={{ color: '#94a3b8', fontSize: '0.9rem' }}></i>
+                      </div>
+                      <span style={{ fontSize: '0.88rem' }}>{new Date(report.uploaded_date || report.test_date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Actions */}

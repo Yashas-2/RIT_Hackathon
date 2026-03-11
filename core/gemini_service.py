@@ -258,6 +258,7 @@ Rules:
 4. Response should be plain text.
 """
         try:
+            print(f"DEBUG GEMINI SERVICE: sending prompt to {self.model.model_name}")
             response = self.model.generate_content(
                 prompt,
                 generation_config=genai.types.GenerationConfig(
@@ -266,9 +267,12 @@ Rules:
                     top_p=0.9
                 )
             )
+            print("DEBUG GEMINI SERVICE: received response")
             return response.text.strip()
         except Exception as e:
-            print(f"Gemini Chat Error: {str(e)}")
+            print(f"DEBUG GEMINI SERVICE ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
             return "I apologize, but I'm having trouble connecting to my knowledge base right now. Please try again in a moment."
 
 # Initialize service

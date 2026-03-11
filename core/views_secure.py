@@ -807,7 +807,8 @@ def get_doctors(request):
             'experience_years': doc.experience_years,
             'bio': doc.bio,
             'phone': doc.phone,
-            'is_online': doc.is_online
+            'is_online': doc.is_online,
+            'profile_photo': doc.profile_photo.url if doc.profile_photo else None
         })
         
     return Response({
@@ -1121,7 +1122,7 @@ def gemini_recommend_doctor(request):
 
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+@permission_classes([AllowAny])
 def gemini_chat(request):
     """
     Generate an AI response for the 'Free Chat' feature.
@@ -1133,8 +1134,10 @@ def gemini_chat(request):
     if not user_message:
         return Response({'success': False, 'error': 'Message is required'}, status=status.HTTP_400_BAD_REQUEST)
 
+    print(f"DEBUG GEMINI CHAT: message received: {user_message}")
     try:
         response_text = gemini_service.get_chat_response(user_message, chat_history, doctor_context)
+        print(f"DEBUG GEMINI CHAT: response generated: {response_text[:50]}...")
         return Response({
             'success': True,
             'reply': response_text

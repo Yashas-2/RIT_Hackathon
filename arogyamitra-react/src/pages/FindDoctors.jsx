@@ -180,7 +180,7 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad, initial
   const [polling, setPolling] = useState(false);
   const [chatMsg, setChatMsg] = useState('');
   const [chatHistory, setChatHistory] = useState([
-    { from: 'doctor', text: `Hello! I'm Dr. ${doctor.full_name}. How can I help you today?`, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    { from: 'doctor', text: "Hello! I'm your ArogyaMitra AI Assistant. How can I help you today?", time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
   ]);
 
   const handleSendChat = async (e) => {
@@ -303,14 +303,14 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad, initial
       <div style={{ ...box, display: 'flex', flexDirection: 'column', height: '80vh' }}>
         {/* Chat header */}
         <div style={{ padding: '1.25rem 1.5rem', borderBottom: '1px solid rgba(255,255,255,0.08)', display: 'flex', alignItems: 'center', gap: '1rem', flexShrink: 0 }}>
-          <div style={{ width: 44, height: 44, borderRadius: '50%', background: avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <i className="fas fa-user-md" style={{ color: 'white', fontSize: '1.1rem' }} />
+          <div style={{ width: 44, height: 44, borderRadius: '50%', background: doctor.profile_photo ? `url(${apiService.baseUrl}${doctor.profile_photo}) center/cover` : avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '2px solid rgba(255,255,255,0.1)' }}>
+            {!doctor.profile_photo && <i className="fas fa-user-md" style={{ color: 'white', fontSize: '1.1rem' }} />}
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ color: '#f8fafc', fontWeight: 700 }}>Dr. {doctor.full_name}</div>
-            <div style={{ color: doctor.is_online ? '#10b981' : '#f87171', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-              <div style={{ width: 7, height: 7, borderRadius: '50%', background: doctor.is_online ? '#10b981' : '#f87171', animation: doctor.is_online ? 'pulse 2s infinite' : 'none' }} />
-              {doctor.is_online ? 'Active' : 'Inactive'}
+            <div style={{ color: '#f8fafc', fontWeight: 700 }}>ArogyaMitra AI</div>
+            <div style={{ color: '#10b981', fontSize: '0.8rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <div style={{ width: 7, height: 7, borderRadius: '50%', background: '#10b981', animation: 'pulse 2s infinite' }} />
+              AI Assistant • Always Online
             </div>
           </div>
           <span style={{ background: 'rgba(6,182,212,0.12)', color: '#67e8f9', border: '1px solid rgba(6,182,212,0.3)', padding: '0.25rem 0.7rem', borderRadius: 20, fontSize: '0.78rem', fontWeight: 600 }}>{doctor.specialization}</span>
@@ -324,8 +324,8 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad, initial
           {chatHistory.map((msg, i) => (
             <div key={i} style={{ display: 'flex', justifyContent: msg.from === 'patient' ? 'flex-end' : 'flex-start', gap: '0.6rem', alignItems: 'flex-end' }}>
               {msg.from === 'doctor' && (
-                <div style={{ width: 30, height: 30, borderRadius: '50%', background: avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                  <i className="fas fa-user-md" style={{ color: 'white', fontSize: '0.7rem' }} />
+                <div style={{ width: 30, height: 30, borderRadius: '50%', background: doctor.profile_photo ? `url(${apiService.baseUrl}${doctor.profile_photo}) center/cover` : avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, border: '1px solid rgba(255,255,255,0.1)' }}>
+                  {!doctor.profile_photo && <i className="fas fa-user-md" style={{ color: 'white', fontSize: '0.7rem' }} />}
                 </div>
               )}
               <div style={{ maxWidth: '75%' }}>
@@ -369,8 +369,8 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad, initial
             <i className="fas fa-times" />
           </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-            <div style={{ width: 80, height: 80, borderRadius: '20px', background: avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 8px 24px rgba(0,0,0,0.3)' }}>
-              <i className="fas fa-user-md" style={{ color: 'white', fontSize: '2rem' }} />
+            <div style={{ width: 80, height: 80, borderRadius: '20px', background: doctor.profile_photo ? `url(${apiService.baseUrl}${doctor.profile_photo}) center/cover` : avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 8px 24px rgba(0,0,0,0.3)', border: '3px solid rgba(255,255,255,0.1)' }}>
+              {!doctor.profile_photo && <i className="fas fa-user-md" style={{ color: 'white', fontSize: '2rem' }} />}
             </div>
             <div>
               <h2 style={{ color: '#f8fafc', margin: '0 0 0.4rem', fontSize: '1.5rem', fontWeight: 800 }}>Dr. {doctor.full_name}</h2>
@@ -436,7 +436,7 @@ const DoctorDetailModal = ({ doctor, isRecommended, onClose, avatarGrad, initial
               onMouseOver={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.18)'; e.currentTarget.style.transform = 'translateY(-2px)'; }}
               onMouseOut={e => { e.currentTarget.style.background = 'rgba(16,185,129,0.08)'; e.currentTarget.style.transform = 'translateY(0)'; }}
             >
-              <i className="fas fa-comments" />Chat (Free)
+              <i className="fas fa-robot" />Chat with AI (Free)
             </button>
             <button
               onClick={() => handleInitConsultation()}
@@ -652,8 +652,8 @@ const FindDoctors = () => {
 
                     {/* Doctor header */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.2rem', paddingTop: isRec ? '0.5rem' : '0' }}>
-                      <div style={{ width: 58, height: 58, borderRadius: '16px', background: avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 15px rgba(0,0,0,0.2)' }}>
-                        <i className="fas fa-user-md" style={{ color: 'white', fontSize: '1.4rem' }} />
+                      <div style={{ width: 58, height: 58, borderRadius: '16px', background: doc.profile_photo ? `url(${apiService.baseUrl}${doc.profile_photo}) center/cover` : avatarGrad, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: '0 4px 15px rgba(0,0,0,0.2)', border: '2px solid rgba(255,255,255,0.05)' }}>
+                        {!doc.profile_photo && <i className="fas fa-user-md" style={{ color: 'white', fontSize: '1.4rem' }} />}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.2rem' }}>
@@ -704,7 +704,7 @@ const FindDoctors = () => {
                         onMouseOver={e => e.currentTarget.style.background = 'rgba(16,185,129,0.18)'}
                         onMouseOut={e => e.currentTarget.style.background = 'rgba(16,185,129,0.07)'}
                       >
-                        <i className="fas fa-comments" />Chat
+                        <i className="fas fa-robot" />Chat with AI
                       </button>
                       <button
                         onClick={e => { e.stopPropagation(); setSelectedDoc({ doc, avatarGrad, isRec, initialView: 'waiting' }); }}
