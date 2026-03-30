@@ -77,4 +77,7 @@ def send_otp_sms(phone_number: str, otp: str) -> bool:
         return True
     except Exception as exc:
         logger.error(f"Twilio SMS failed for {to}: {exc}")
+        print(f"DEBUG: Twilio SMS failed for {to}: {exc}")
+        import traceback
+        traceback.print_exc()
         return False
