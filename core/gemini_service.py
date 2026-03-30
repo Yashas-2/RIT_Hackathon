@@ -67,7 +67,8 @@ CRITICAL: Return ONLY the JSON object, no extra text before or after.
                     max_output_tokens=1500,
                     temperature=0.2,
                     top_p=0.8,
-                    top_k=40
+                    top_k=40,
+                    response_mime_type="application/json"
                 )
             )
             result_text = response.text.strip()
@@ -80,6 +81,7 @@ CRITICAL: Return ONLY the JSON object, no extra text before or after.
             if result_text.endswith('```'):
                 result_text = result_text[:-3]
             result_text = result_text.strip()
+            print(f"DEBUG - Full AI Response: {result_text}")
             
             # Parse JSON
             result = json.loads(result_text)
@@ -148,7 +150,8 @@ CRITICAL INSTRUCTION: Return ONLY the raw JSON object. Do not use ```json blocks
                     max_output_tokens=2048,
                     temperature=0.2, 
                     top_p=0.8,
-                    top_k=40
+                    top_k=40,
+                    response_mime_type="application/json"
                 )
             )
             result_text = response.text.strip()
